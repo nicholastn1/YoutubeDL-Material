@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ytdl-material
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ytdl-material
+  template:
+    metadata:
+      labels:
+        app: ytdl-material
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker2
+      containers:
+        - name: ytdl-material
+          image: tzahi12345/youtubedl-material:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 17442
+          env:
+            - name: PORT
+              value: "17442"
+            - name: YTDL_DOWNLOAD_DIR
+              value: "/app/downloads"
+            - name: YTDL_CONFIG_DIR
+              value: "/app/appdata"
+            - name: TEMP
+              value: "/tmp"
+            - name: TMPDIR
+              value: "/tmp"
+            - name: _JAVA_OPTIONS
+              value: "-Djava.io.tmpdir=/tmp"
+            - name: VIDEO_OUTPUT_FOLDER
+              value: "/app/downloads"
+          volumeMounts:
+            - name: downloads
+              mountPath: /app/downloads
+            - name: appdata
+              mountPath: /app/appdata
+            - name: no-video
+              mountPath: /app/video
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: downloads
+          hostPath:
+            path: /mnt/external-hd/downloads
+            type: Directory
+        - name: appdata
+          emptyDir: {}
+        - name: no-video
+          emptyDir: {}
+        - name: tmp
+          hostPath:
+            path: /mnt/external-hd/tmp
+            type: DirectoryOrCreate
